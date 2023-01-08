@@ -1,27 +1,27 @@
 [
   {
-    "image": "${aws_account_id}.dkr.ecr.us-east-1.amazonaws.com/fargate-images:latest",
+    "image": "${aws_account_id}.dkr.ecr.ap-southeast-1.amazonaws.com/mmt/clamav_fargate:latest",
     "name": "clamav",
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
-        "awslogs-region": "us-east-1",
+        "awslogs-region": "ap-southeast-1",
         "awslogs-group": "/aws/ecs/clamav_fargate",
-        "awslogs-stream-prefix": "project"
+        "awslogs-stream-prefix": "ecs"
       }
     },
     "environment": [
       {
         "name": "VIRUS_SCAN_QUEUE_URL",
-        "value": "https://sqs.us-east-1.amazonaws.com/${aws_account_id}/s3_clamav_event_queue"
+        "value": "https://sqs.ap-southeast-1.amazonaws.com/${aws_account_id}/s3_clamav_event_queue"
       },
       {
         "name": "QUARANTINE_BUCKET",
-        "value": "clamav-quarantine-bucket"
+        "value": "mm-clamav-quarantine"
       },
       {
         "name": "CLEAN_BUCKET",
-        "value": "clamav-clean-bucket"
+        "value": "mm-clamav-clean"
       }
     ]
   }

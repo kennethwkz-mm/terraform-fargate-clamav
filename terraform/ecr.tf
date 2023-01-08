@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "image_repository" {
-  name = "fargate-images"
+  name = "mmt/clamav_fargate"
 }
 
 data "template_file" "repo_policy_file" {

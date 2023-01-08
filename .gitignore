@@ -108,3 +108,4 @@ dist
 .terraform.lock.hcl
 terraform/.terraform*
 terraform/.terraform/*
+terraform/deployment_plan

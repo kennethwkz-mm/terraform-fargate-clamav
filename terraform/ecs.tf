@@ -56,6 +56,10 @@ resource "aws_iam_role_policy_attachment" "sqs_task" {
 
 resource "aws_ecs_cluster" "cluster" {
   name = "clamav_fargate_cluster"
+}
+
+resource "aws_ecs_cluster_capacity_providers" "cluster" {
+  cluster_name = aws_ecs_cluster.cluster.name
 
   capacity_providers = ["FARGATE"]
 }
@@ -73,8 +77,8 @@ resource "aws_ecs_task_definition" "definition" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   network_mode             = "awsvpc"
-  cpu                      = "512"
-  memory                   = "2048"
+  cpu                      = "1024"
+  memory                   = "3072"
   requires_compatibilities = ["FARGATE"]
 
   container_definitions = data.template_file.task_consumer_east.rendered
