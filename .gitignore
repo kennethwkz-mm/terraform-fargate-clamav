@@ -109,3 +109,6 @@ dist
 terraform/.terraform*
 terraform/.terraform/*
 terraform/deployment_plan
+
+# Mac
+.DS_Store

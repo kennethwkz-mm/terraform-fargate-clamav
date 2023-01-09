@@ -82,120 +82,129 @@ resource "aws_route" "public_igw" {
   gateway_id             = aws_internet_gateway.igw.id
 }
 
-# resource "aws_eip" "nat" {
-#   vpc        = true
-#   depends_on = [aws_internet_gateway.igw]
-# }
+resource "aws_eip" "nat" {
+  vpc = true
 
-# resource "aws_nat_gateway" "ngw" {
-#   subnet_id     = aws_subnet.public.id
-#   allocation_id = aws_eip.nat.id
-
-#   depends_on = [aws_internet_gateway.igw]
-# }
-
-# resource "aws_route" "private_ngw" {
-#   route_table_id         = aws_route_table.private.id
-#   destination_cidr_block = "0.0.0.0/0"
-#   nat_gateway_id         = aws_nat_gateway.ngw.id
-# }
-
-resource "aws_vpc_endpoint" "s3-endpoint" {
-  vpc_id            = aws_vpc.clamav_vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.private.id]
-}
-
-resource "aws_vpc_endpoint" "sqs-endpoint" {
-  vpc_id              = aws_vpc.clamav_vpc.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.sqs"
-  vpc_endpoint_type   = "Interface"
-  private_dns_enabled = true
-  security_group_ids  = [aws_security_group.ingress-all.id]
-  subnet_ids          = [aws_subnet.private.id]
-}
-
-resource "aws_vpc_endpoint" "logs-endpoint" {
-  vpc_id              = aws_vpc.clamav_vpc.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.logs"
-  vpc_endpoint_type   = "Interface"
-  private_dns_enabled = true
-  security_group_ids  = [aws_security_group.ingress-all.id]
-  subnet_ids          = [aws_subnet.private.id]
-}
-
-resource "aws_vpc_endpoint" "ecr-dkr-endpoint" {
-  vpc_id              = aws_vpc.clamav_vpc.id
-  private_dns_enabled = true
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = [aws_security_group.ingress-all.id]
-  subnet_ids          = [aws_subnet.private.id]
-}
-
-resource "aws_vpc_endpoint" "ecr-api-endpoint" {
-  vpc_id              = aws_vpc.clamav_vpc.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
-  vpc_endpoint_type   = "Interface"
-  private_dns_enabled = true
-  security_group_ids  = [aws_security_group.ingress-all.id]
-  subnet_ids          = [aws_subnet.private.id]
-}
-
-resource "aws_vpc_endpoint" "ecs-agent-endpoint" {
-  vpc_id              = aws_vpc.clamav_vpc.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecs-agent"
-  vpc_endpoint_type   = "Interface"
-  private_dns_enabled = true
-  security_group_ids  = [aws_security_group.ingress-all.id]
-  subnet_ids          = [aws_subnet.private.id]
-}
-
-resource "aws_vpc_endpoint" "ecs-telemetry-endpoint" {
-  vpc_id              = aws_vpc.clamav_vpc.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecs-telemetry"
-  vpc_endpoint_type   = "Interface"
-  private_dns_enabled = true
-  security_group_ids  = [aws_security_group.ingress-all.id]
-  subnet_ids          = [aws_subnet.private.id]
-}
-
-resource "aws_vpc_endpoint" "ecs-endpoint" {
-  vpc_id              = aws_vpc.clamav_vpc.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.ecs"
-  vpc_endpoint_type   = "Interface"
-  private_dns_enabled = true
-  security_group_ids  = [aws_security_group.ingress-all.id]
-  subnet_ids          = [aws_subnet.private.id]
-}
-
-resource "aws_security_group" "ingress-all" {
-  name        = "ingress_all"
-  description = "Allow 80 & 443 inbound traffic"
-  vpc_id      = aws_vpc.clamav_vpc.id
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    Name = "mm-prod-clamav-nat-ip"
   }
 
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+  depends_on = [aws_internet_gateway.igw]
+}
+
+resource "aws_nat_gateway" "ngw" {
+  subnet_id     = aws_subnet.public.id
+  allocation_id = aws_eip.nat.id
+
+  tags = {
+    Name = "mm-prod-clamav-vpc-nat"
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  depends_on = [aws_internet_gateway.igw]
 }
+
+resource "aws_route" "private_ngw" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.ngw.id
+}
+
+# resource "aws_vpc_endpoint" "s3-endpoint" {
+#   vpc_id            = aws_vpc.clamav_vpc.id
+#   service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+#   vpc_endpoint_type = "Gateway"
+#   route_table_ids   = [aws_route_table.private.id]
+# }
+
+# resource "aws_vpc_endpoint" "sqs-endpoint" {
+#   vpc_id              = aws_vpc.clamav_vpc.id
+#   service_name        = "com.amazonaws.${data.aws_region.current.name}.sqs"
+#   vpc_endpoint_type   = "Interface"
+#   private_dns_enabled = true
+#   security_group_ids  = [aws_security_group.ingress-all.id]
+#   subnet_ids          = [aws_subnet.private.id]
+# }
+
+# resource "aws_vpc_endpoint" "logs-endpoint" {
+#   vpc_id              = aws_vpc.clamav_vpc.id
+#   service_name        = "com.amazonaws.${data.aws_region.current.name}.logs"
+#   vpc_endpoint_type   = "Interface"
+#   private_dns_enabled = true
+#   security_group_ids  = [aws_security_group.ingress-all.id]
+#   subnet_ids          = [aws_subnet.private.id]
+# }
+
+# resource "aws_vpc_endpoint" "ecr-dkr-endpoint" {
+#   vpc_id              = aws_vpc.clamav_vpc.id
+#   private_dns_enabled = true
+#   service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.dkr"
+#   vpc_endpoint_type   = "Interface"
+#   security_group_ids  = [aws_security_group.ingress-all.id]
+#   subnet_ids          = [aws_subnet.private.id]
+# }
+
+# resource "aws_vpc_endpoint" "ecr-api-endpoint" {
+#   vpc_id              = aws_vpc.clamav_vpc.id
+#   service_name        = "com.amazonaws.${data.aws_region.current.name}.ecr.api"
+#   vpc_endpoint_type   = "Interface"
+#   private_dns_enabled = true
+#   security_group_ids  = [aws_security_group.ingress-all.id]
+#   subnet_ids          = [aws_subnet.private.id]
+# }
+
+# resource "aws_vpc_endpoint" "ecs-agent-endpoint" {
+#   vpc_id              = aws_vpc.clamav_vpc.id
+#   service_name        = "com.amazonaws.${data.aws_region.current.name}.ecs-agent"
+#   vpc_endpoint_type   = "Interface"
+#   private_dns_enabled = true
+#   security_group_ids  = [aws_security_group.ingress-all.id]
+#   subnet_ids          = [aws_subnet.private.id]
+# }
+
+# resource "aws_vpc_endpoint" "ecs-telemetry-endpoint" {
+#   vpc_id              = aws_vpc.clamav_vpc.id
+#   service_name        = "com.amazonaws.${data.aws_region.current.name}.ecs-telemetry"
+#   vpc_endpoint_type   = "Interface"
+#   private_dns_enabled = true
+#   security_group_ids  = [aws_security_group.ingress-all.id]
+#   subnet_ids          = [aws_subnet.private.id]
+# }
+
+# resource "aws_vpc_endpoint" "ecs-endpoint" {
+#   vpc_id              = aws_vpc.clamav_vpc.id
+#   service_name        = "com.amazonaws.${data.aws_region.current.name}.ecs"
+#   vpc_endpoint_type   = "Interface"
+#   private_dns_enabled = true
+#   security_group_ids  = [aws_security_group.ingress-all.id]
+#   subnet_ids          = [aws_subnet.private.id]
+# }
+
+# resource "aws_security_group" "ingress-all" {
+#   name        = "ingress_all"
+#   description = "Allow 80 & 443 inbound traffic"
+#   vpc_id      = aws_vpc.clamav_vpc.id
+
+#   ingress {
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "TCP"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+
+#   ingress {
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "TCP"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+
+#   egress {
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+# }
 
 resource "aws_security_group" "egress-all" {
   name        = "egress_all"
